@@ -1,0 +1,22 @@
+{
+  "list": [
+    {
+      "id": 1771841458859,
+      "name": "detergente",
+      "qty": 1,
+      "price": 2.98,
+      "unit": "un",
+      "checked": true
+    },
+    {
+      "id": 1771841547123,
+      "name": "pão",
+      "qty": 2,
+      "price": 1,
+      "unit": "g",
+      "checked": true
+    }
+  ],
+  "budget": 50,
+  "date": "2026-02-23T15:44:54.389Z"
+}
