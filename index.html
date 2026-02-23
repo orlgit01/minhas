@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Pro - Controle de Gastos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .checked { text-decoration: line-through; opacity: 0.5; filter: grayscale(1); }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .budget-over { color: #ef4444 !important; animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-40">
+
+    <header class="bg-emerald-600 text-white p-6 shadow-md sticky top-0 z-20">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black tracking-tight flex items-center gap-2">
+                    <i data-lucide="shopping-bag"></i> MERCADO PRO
+                </h1>
+                <p id="current-date" class="text-emerald-100 text-xs uppercase tracking-wider mt-1 font-semibold"></p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="clearList()" class="p-2 bg-emerald-700/50 hover:bg-red-500 rounded-lg transition-all">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-100 p-2 rounded-full text-emerald-600">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Meu Limite</p>
+                    <div class="flex items-center gap-1">
+                        <span class="text-slate-400 font-medium text-sm">R$</span>
+                        <input type="number" id="budget-limit" value="0.00" onchange="saveBudget()"
+                            class="font-bold text-slate-700 outline-none w-24 focus:text-emerald-600 transition-colors">
+                    </div>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Disponível</p>
+                <span id="budget-remaining" class="font-bold text-emerald-500 text-sm">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100">
+            <div class="space-y-4">
+                <input type="text" id="prod-name" placeholder="O que vamos comprar?" 
+                    class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="flex items-center bg-slate-50 rounded-xl overflow-hidden p-1 border border-slate-100">
+                        <button onclick="changeQty(-1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">-</button>
+                        <input type="number" id="prod-qty" value="1" class="w-full text-center bg-transparent font-bold text-slate-700" readonly>
+                        <button onclick="changeQty(1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">+</button>
+                    </div>
+
+                    <select id="prod-unit" class="bg-slate-50 border-none p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-600">
+                        <option value="un">Unidade (un)</option>
+                        <option value="kg">Quilo (kg)</option>
+                        <option value="g">Grama (g)</option>
+                        <option value="L">Litro (L)</option>
+                        <option value="pct">Pacote (pct)</option>
+                    </select>
+                </div>
+
+                <div class="relative">
+                    <span class="absolute left-4 top-4 text-slate-400 font-bold italic">R$</span>
+                    <input type="number" id="prod-price" placeholder="Preço unitário" step="0.01" 
+                        class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+                </div>
+
+                <button onclick="addItem()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-emerald-200 shadow-lg transition-all active:scale-95">
+                    <i data-lucide="shopping-cart"></i> ADICIONAR ITEM
+                </button>
+            </div>
+        </div>
+
+        <div id="items-container" class="space-y-3 pb-4"></div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 p-6 z-20">
+        <div class="max-w-md mx-auto">
+            <div class="flex justify-between items-center mb-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <span>Carrinho: <span id="progress-count" class="text-emerald-600">0/0</span></span>
+                <span id="budget-status-text">Dentro do Limite</span>
+            </div>
+            
+            <div class="w-full h-3 bg-slate-100 rounded-full mb-4 overflow-hidden flex">
+                <div id="progress-bar-bought" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <p class="text-slate-400 text-sm font-medium leading-none">Total da Compra</p>
+                <span class="text-3xl font-black text-slate-800 tracking-tighter" id="total-value">R$ 0,00</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let shoppingList = JSON.parse(localStorage.getItem('proShoppingList')) || [];
+        let budget = parseFloat(localStorage.getItem('proBudget')) || 0;
+
+        function init() {
+            document.getElementById('budget-limit').value = budget.toFixed(2);
+            updateDate();
+            renderList();
+        }
+
+        function updateDate() {
+            const options = { weekday: 'long', day: 'numeric', month: 'short' };
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', options);
+        }
+
+        function changeQty(val) {
+            const input = document.getElementById('prod-qty');
+            let newVal = parseInt(input.value) + val;
+            if (newVal > 0) input.value = newVal;
+        }
+
+        function saveBudget() {
+            budget = parseFloat(document.getElementById('budget-limit').value) || 0;
+            localStorage.setItem('proBudget', budget);
+            renderList();
+        }
+
+        function addItem() {
+            const name = document.getElementById('prod-name').value;
+            const qty = parseInt(document.getElementById('prod-qty').value);
+            const price = parseFloat(document.getElementById('prod-price').value);
+            const unit = document.getElementById('prod-unit').value;
+
+            if (!name || isNaN(price)) return;
+
+            shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
+            saveAndRender();
+            
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('prod-qty').value = '1';
+        }
+
+        function toggleItem(id) {
+            shoppingList = shoppingList.map(item => item.id === id ? { ...item, checked: !item.checked } : item);
+            saveAndRender();
+        }
+
+        function deleteItem(id) {
+            shoppingList = shoppingList.filter(item => item.id !== id);
+            saveAndRender();
+        }
+
+        function clearList() {
+            if (confirm("Limpar toda a lista?")) {
+                shoppingList = [];
+                saveAndRender();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('proShoppingList', JSON.stringify(shoppingList));
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+            let total = 0;
+            let checkedCount = 0;
+
+            shoppingList.forEach(item => {
+                const subtotal = item.qty * item.price;
+                total += subtotal;
+                if(item.checked) checkedCount++;
+
+                const card = document.createElement('div');
+                card.className = `bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between border-2 transition-all ${item.checked ? 'border-emerald-100 bg-emerald-50/30' : 'border-transparent'}`;
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 flex-1 overflow-hidden" onclick="toggleItem(${item.id})">
+                        <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-slate-50'}">
+                            ${item.checked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                        </div>
+                        <div class="flex flex-col truncate">
+                            <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${item.qty}${item.unit} x R$ ${item.price.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-black text-slate-700">R$ ${subtotal.toFixed(2)}</span>
+                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors">
+                            <i data-lucide="trash" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Lógica de Orçamento
+            const remaining = budget - total;
+            const remainingEl = document.getElementById('budget-remaining');
+            const totalEl = document.getElementById('total-value');
+            const statusText = document.getElementById('budget-status-text');
+
+            remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            totalEl.innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            
+            if (budget > 0 && total > budget) {
+                totalEl.classList.add('budget-over');
+                remainingEl.classList.replace('text-emerald-500', 'text-red-500');
+                statusText.innerText = "Limite Excedido!";
+                statusText.classList.add('text-red-500');
+            } else {
+                totalEl.classList.remove('budget-over');
+                remainingEl.classList.replace('text-red-500', 'text-emerald-500');
+                statusText.innerText = "Dentro do Limite";
+                statusText.classList.remove('text-red-500');
+            }
+
+            document.getElementById('progress-count').innerText = `${checkedCount}/${shoppingList.length}`;
+            const progress = shoppingList.length > 0 ? (checkedCount / shoppingList.length) * 100 : 0;
+            document.getElementById('progress-bar-bought').style.width = `${progress}%`;
+
+            lucide.createIcons();
+        }
+
+        init();
+    </script>
+</body>
+</html>
