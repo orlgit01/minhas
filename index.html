@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Pro - Fluxo de Caixa Real</title>
+    <title>Mercado Pro - Edição Ativada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .checked { text-decoration: line-through; opacity: 0.5; filter: grayscale(1); }
         .budget-over { color: #ef4444 !important; animation: shake 0.5s ease-in-out; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .edit-mode { border: 2px solid #3b82f6 !important; background-color: #eff6ff !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-44">
@@ -21,33 +22,19 @@
                 <p id="current-date" class="text-emerald-100 text-[10px] uppercase font-bold tracking-widest"></p>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleDataPanel()" class="p-2 bg-emerald-700/50 rounded-lg hover:bg-white/20 transition-all">
-                    <i data-lucide="settings-2" class="w-5 h-5"></i>
-                </button>
-                <button onclick="clearList()" class="p-2 bg-emerald-700/50 rounded-lg hover:bg-red-500 transition-all">
-                    <i data-lucide="trash-2" class="w-5 h-5"></i>
-                </button>
+                <button onclick="toggleDataPanel()" class="p-2 bg-emerald-700/50 rounded-lg hover:bg-white/20 transition-all"><i data-lucide="settings-2" class="w-5 h-5"></i></button>
+                <button onclick="clearList()" class="p-2 bg-emerald-700/50 rounded-lg hover:bg-red-500 transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
             </div>
         </div>
     </header>
 
     <div id="data-panel" class="fixed inset-x-0 top-20 z-30 max-w-md mx-auto p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
-            <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2">
-                <i data-lucide="database" class="w-5 h-5"></i> Gerenciar Backup
-            </h2>
+            <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2"><i data-lucide="database" class="w-5 h-5"></i> Dados</h2>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="exportData()" class="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all">
-                    <i data-lucide="download" class="mb-2"></i>
-                    <span class="text-xs font-bold uppercase">Exportar</span>
-                </button>
-                <label class="flex flex-col items-center justify-center p-4 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 cursor-pointer transition-all">
-                    <i data-lucide="upload" class="mb-2"></i>
-                    <span class="text-xs font-bold uppercase">Importar</span>
-                    <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
-                </label>
+                <button onclick="exportData()" class="flex flex-col items-center p-4 bg-blue-50 text-blue-600 rounded-xl font-bold uppercase text-xs"><i data-lucide="download" class="mb-2"></i>Exportar</button>
+                <label class="flex flex-col items-center p-4 bg-amber-50 text-amber-600 rounded-xl font-bold uppercase text-xs cursor-pointer"><i data-lucide="upload" class="mb-2"></i>Importar<input type="file" class="hidden" onchange="importData(event)"></label>
             </div>
-            <button onclick="toggleDataPanel()" class="w-full mt-4 py-2 text-slate-400 text-xs font-bold uppercase tracking-widest">Fechar</button>
         </div>
     </div>
 
@@ -56,20 +43,21 @@
             <div class="flex items-center gap-3">
                 <div class="bg-emerald-100 p-2 rounded-full text-emerald-600"><i data-lucide="wallet" class="w-5 h-5"></i></div>
                 <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase">Meu Limite (R$)</p>
-                    <input type="text" id="budget-limit" value="0,00" onblur="formatInputMoney(this); saveBudget()"
-                        class="font-bold text-slate-700 outline-none w-24 bg-transparent focus:text-emerald-600">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase italic">Limite Disponível</p>
+                    <input type="text" id="budget-limit" value="0,00" onblur="formatInputMoney(this); saveBudget()" class="font-bold text-slate-700 outline-none w-24 bg-transparent">
                 </div>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Disponível no Bolso</p>
-                <span id="budget-remaining" class="font-bold text-emerald-600 text-sm tracking-tight">R$ 0,00</span>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Sobrando</p>
+                <span id="budget-remaining" class="font-bold text-emerald-600 text-sm italic">R$ 0,00</span>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100 space-y-4">
-            <input type="text" id="prod-name" placeholder="O que vamos comprar?" 
-                class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium text-slate-700">
+        <div id="main-form" class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100 space-y-4 transition-all">
+            <div id="edit-indicator" class="hidden text-blue-600 text-[10px] font-bold uppercase mb-1 flex items-center gap-1">
+                <i data-lucide="pencil" class="w-3 h-3"></i> Editando Item
+            </div>
+            <input type="text" id="prod-name" placeholder="Nome do produto..." class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium text-slate-700">
             
             <div class="grid grid-cols-2 gap-3">
                 <div class="flex items-center bg-slate-50 rounded-xl overflow-hidden p-1 border border-slate-100">
@@ -77,7 +65,6 @@
                     <input type="text" id="prod-qty" value="1,000" class="w-full text-center bg-transparent font-bold text-slate-700 outline-none" onblur="formatInputQty(this)">
                     <button onclick="changeQty(0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-emerald-600 font-bold">+</button>
                 </div>
-
                 <select id="prod-unit" class="bg-slate-50 border-none p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-600">
                     <option value="un">Un (un)</option><option value="kg">Kg (kg)</option><option value="g">Gr (g)</option><option value="L">Lt (L)</option>
                 </select>
@@ -85,14 +72,13 @@
 
             <div class="relative">
                 <span class="absolute left-4 top-4 text-slate-400 font-bold italic text-sm">R$</span>
-                <input type="text" id="prod-price" placeholder="Preço unitário" 
-                    onblur="formatInputMoney(this)"
-                    class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+                <input type="text" id="prod-price" placeholder="Preço unitário" onblur="formatInputMoney(this)" class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
             </div>
 
-            <button onclick="addItem()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <button id="btn-submit" onclick="handleFormSubmit()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
                 <i data-lucide="plus"></i> ADICIONAR
             </button>
+            <button id="btn-cancel" onclick="resetForm()" class="hidden w-full text-slate-400 font-bold py-2 text-xs uppercase">Cancelar Edição</button>
         </div>
 
         <div id="items-container" class="space-y-3 pb-4"></div>
@@ -102,7 +88,7 @@
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-3">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">No Carrinho: <span id="progress-count" class="text-emerald-600">0/0</span></span>
-                <span id="budget-status-text" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Aguardando compras</span>
+                <span id="budget-status-text" class="text-[10px] font-bold uppercase text-slate-400">Pronto para comprar</span>
             </div>
             <div class="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
                 <div id="progress-bar-bought" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
@@ -113,7 +99,7 @@
                     <p id="list-total" class="text-slate-500 font-bold text-sm">R$ 0,00</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase">Gasto Real (Carrinho)</p>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase italic">Gasto Real (Marcados)</p>
                     <span class="text-3xl font-black text-slate-800 tracking-tighter" id="total-value">R$ 0,00</span>
                 </div>
             </div>
@@ -121,21 +107,13 @@
     </footer>
 
     <script>
-        let shoppingList = JSON.parse(localStorage.getItem('proShoppingListBR_v2')) || [];
-        let budget = parseFloat(localStorage.getItem('proBudgetBR_v2')) || 0;
+        let shoppingList = JSON.parse(localStorage.getItem('proList_v3')) || [];
+        let budget = parseFloat(localStorage.getItem('proBudget_v3')) || 0;
+        let editingId = null;
 
-        function toFloat(val) {
-            if (typeof val === 'number') return val;
-            return parseFloat(val?.toString().replace(/\./g, '').replace(',', '.')) || 0;
-        }
-
-        function toBRL(val) {
-            return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        function toQtyBR(val) {
-            return val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-        }
+        const toFloat = v => typeof v === 'number' ? v : parseFloat(v?.toString().replace(/\./g, '').replace(',', '.')) || 0;
+        const toBRL = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const toQtyBR = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
         function formatInputMoney(el) { el.value = toBRL(toFloat(el.value)); }
         function formatInputQty(el) { el.value = toQtyBR(toFloat(el.value)); }
@@ -159,17 +137,55 @@
             saveAndRender();
         }
 
-        function addItem() {
+        function handleFormSubmit() {
             const name = document.getElementById('prod-name').value;
             const qty = toFloat(document.getElementById('prod-qty').value);
             const price = toFloat(document.getElementById('prod-price').value);
             const unit = document.getElementById('prod-unit').value;
-            if (!name || price <= 0 || qty <= 0) return alert("Dados inválidos");
-            shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
-            document.getElementById('prod-name').value = '';
-            document.getElementById('prod-price').value = '';
-            document.getElementById('prod-qty').value = '1,000';
+
+            if (!name || price <= 0 || qty <= 0) return alert("Preencha corretamente");
+
+            if (editingId) {
+                shoppingList = shoppingList.map(item => item.id === editingId ? {...item, name, qty, price, unit} : item);
+            } else {
+                shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
+            }
+            
+            resetForm();
             saveAndRender();
+        }
+
+        function editItem(id) {
+            const item = shoppingList.find(i => i.id === id);
+            if (!item) return;
+
+            editingId = id;
+            document.getElementById('prod-name').value = item.name;
+            document.getElementById('prod-qty').value = toQtyBR(item.qty);
+            document.getElementById('prod-price').value = toBRL(item.price);
+            document.getElementById('prod-unit').value = item.unit;
+
+            document.getElementById('main-form').classList.add('edit-mode');
+            document.getElementById('edit-indicator').classList.remove('hidden');
+            document.getElementById('btn-cancel').classList.remove('hidden');
+            document.getElementById('btn-submit').innerHTML = '<i data-lucide="save"></i> SALVAR ALTERAÇÃO';
+            document.getElementById('btn-submit').classList.replace('bg-emerald-600', 'bg-blue-600');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        function resetForm() {
+            editingId = null;
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-qty').value = '1,000';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('main-form').classList.remove('edit-mode');
+            document.getElementById('edit-indicator').classList.add('hidden');
+            document.getElementById('btn-cancel').classList.add('hidden');
+            document.getElementById('btn-submit').innerHTML = '<i data-lucide="plus"></i> ADICIONAR';
+            document.getElementById('btn-submit').classList.replace('bg-blue-600', 'bg-emerald-600');
+            lucide.createIcons();
         }
 
         function toggleItem(id) {
@@ -178,8 +194,10 @@
         }
 
         function deleteItem(id) {
-            shoppingList = shoppingList.filter(i => i.id !== id);
-            saveAndRender();
+            if (confirm("Excluir este item?")) {
+                shoppingList = shoppingList.filter(i => i.id !== id);
+                saveAndRender();
+            }
         }
 
         function clearList() {
@@ -187,67 +205,57 @@
         }
 
         function saveAndRender() {
-            localStorage.setItem('proShoppingListBR_v2', JSON.stringify(shoppingList));
-            localStorage.setItem('proBudgetBR_v2', budget);
+            localStorage.setItem('proList_v3', JSON.stringify(shoppingList));
+            localStorage.setItem('proBudget_v3', budget);
             renderList();
         }
 
         function renderList() {
             const container = document.getElementById('items-container');
             container.innerHTML = '';
-            let totalLista = 0;
-            let totalCarrinho = 0;
-            let checkedCount = 0;
+            let totalLista = 0, totalCarrinho = 0, checkedCount = 0;
 
             shoppingList.forEach(item => {
                 const subtotal = item.qty * item.price;
                 totalLista += subtotal;
-                
-                if(item.checked) {
-                    totalCarrinho += subtotal;
-                    checkedCount++;
-                }
+                if(item.checked) { totalCarrinho += subtotal; checkedCount++; }
 
                 const card = document.createElement('div');
-                card.className = `bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between border-2 transition-all ${item.checked ? 'border-emerald-500 bg-emerald-50/20' : 'border-transparent'}`;
+                card.className = `bg-white p-4 rounded-2xl shadow-sm border-2 transition-all ${item.checked ? 'border-emerald-500 bg-emerald-50/20' : 'border-transparent'}`;
                 card.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1" onclick="toggleItem(${item.id})">
-                        <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-slate-50'}">
-                            ${item.checked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-3 flex-1" onclick="toggleItem(${item.id})">
+                            <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-slate-50'}">
+                                ${item.checked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                            </div>
+                            <div class="flex flex-col truncate">
+                                <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
+                            </div>
                         </div>
-                        <div class="flex flex-col truncate">
-                            <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
-                        </div>
+                        <span class="font-black text-slate-700 ml-2">R$ ${toBRL(subtotal)}</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-black text-slate-700">R$ ${toBRL(subtotal)}</span>
-                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    <div class="flex justify-end gap-4 border-t border-slate-50 pt-2">
+                        <button onclick="editItem(${item.id})" class="text-blue-400 hover:text-blue-600 flex items-center gap-1 text-[10px] font-bold uppercase"><i data-lucide="pencil" class="w-3 h-3"></i> Editar</button>
+                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 flex items-center gap-1 text-[10px] font-bold uppercase"><i data-lucide="x" class="w-3 h-3"></i> Excluir</button>
                     </div>
                 `;
                 container.appendChild(card);
             });
 
-            // LÓGICA DE ORÇAMENTO (SÓ CONTA SE TIVER CHECK)
-            const remaining = budget - totalCarrinho;
-            document.getElementById('budget-remaining').innerText = `R$ ${toBRL(remaining)}`;
+            document.getElementById('budget-remaining').innerText = `R$ ${toBRL(budget - totalCarrinho)}`;
             document.getElementById('total-value').innerText = `R$ ${toBRL(totalCarrinho)}`;
             document.getElementById('list-total').innerText = `R$ ${toBRL(totalLista)}`;
             
-            const totalCarrinhoEl = document.getElementById('total-value');
             const statusText = document.getElementById('budget-status-text');
-            const remainingText = document.getElementById('budget-remaining');
-
             if (budget > 0 && totalCarrinho > budget) {
-                totalCarrinhoEl.classList.add('budget-over');
+                document.getElementById('total-value').classList.add('budget-over');
                 statusText.innerText = "LIMITE EXCEDIDO!";
-                statusText.classList.replace('text-slate-400', 'text-red-600');
-                remainingText.classList.replace('text-emerald-600', 'text-red-600');
+                statusText.classList.add('text-red-600');
             } else {
-                totalCarrinhoEl.classList.remove('budget-over');
-                statusText.innerText = checkedCount > 0 ? "Dentro do Limite" : "Aguardando compras";
-                statusText.classList.replace('text-red-600', 'text-slate-400');
-                remainingText.classList.replace('text-red-600', 'text-emerald-600');
+                document.getElementById('total-value').classList.remove('budget-over');
+                statusText.innerText = checkedCount > 0 ? "No Limite" : "Pronto para comprar";
+                statusText.classList.remove('text-red-600');
             }
 
             document.getElementById('progress-count').innerText = `${checkedCount}/${shoppingList.length}`;
@@ -255,26 +263,18 @@
             lucide.createIcons();
         }
 
-        // Import / Export
         function exportData() {
-            const data = JSON.stringify({ list: shoppingList, budget: budget });
-            const blob = new Blob([data], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `backup-mercado.json`;
-            a.click();
-            toggleDataPanel();
+            const blob = new Blob([JSON.stringify({list: shoppingList, budget})], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
         }
 
         function importData(e) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const data = JSON.parse(event.target.result);
-                shoppingList = data.list || [];
-                budget = data.budget || 0;
+                shoppingList = data.list || []; budget = data.budget || 0;
                 document.getElementById('budget-limit').value = toBRL(budget);
                 saveAndRender();
-                toggleDataPanel();
             };
             reader.readAsText(e.target.files[0]);
         }
