@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Pro - Controle Total</title>
+    <title>Mercado Pro - Precisão Total</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -51,7 +51,6 @@
                     <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
                 </label>
             </div>
-            <p class="text-[10px] text-slate-400 mt-4 text-center">Os arquivos são salvos em formato .json</p>
         </div>
     </div>
 
@@ -78,33 +77,35 @@
 
         <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100">
             <div class="space-y-4">
-                <input type="text" id="prod-name" placeholder="O que vamos comprar?" 
+                <input type="text" id="prod-name" placeholder="Nome do produto..." 
                     class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium">
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div class="flex items-center bg-slate-50 rounded-xl overflow-hidden p-1 border border-slate-100">
-                        <button onclick="changeQty(-1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">-</button>
-                        <input type="number" id="prod-qty" value="1" class="w-full text-center bg-transparent font-bold text-slate-700" readonly>
-                        <button onclick="changeQty(1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">+</button>
+                        <button onclick="changeQty(-0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">-</button>
+                        <input type="number" id="prod-qty" value="1.000" step="0.001" 
+                            class="w-full text-center bg-transparent font-bold text-slate-700 outline-none" 
+                            onblur="this.value = parseFloat(this.value).toFixed(3)">
+                        <button onclick="changeQty(0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">+</button>
                     </div>
 
                     <select id="prod-unit" class="bg-slate-50 border-none p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-600">
-                        <option value="un">Unidade (un)</option>
-                        <option value="kg">Quilo (kg)</option>
-                        <option value="g">Grama (g)</option>
-                        <option value="L">Litro (L)</option>
-                        <option value="pct">Pacote (pct)</option>
+                        <option value="un">Un (un)</option>
+                        <option value="kg">Kg (kg)</option>
+                        <option value="g">Gr (g)</option>
+                        <option value="L">Lt (L)</option>
+                        <option value="pct">Pc (pct)</option>
                     </select>
                 </div>
 
                 <div class="relative">
                     <span class="absolute left-4 top-4 text-slate-400 font-bold italic">R$</span>
-                    <input type="number" id="prod-price" placeholder="Preço unitário" step="0.01" 
+                    <input type="number" id="prod-price" placeholder="Preço" step="0.01" 
                         class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
                 </div>
 
-                <button onclick="addItem()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-emerald-200 shadow-lg transition-all active:scale-95">
-                    <i data-lucide="plus"></i> ADICIONAR ITEM
+                <button onclick="addItem()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95">
+                    <i data-lucide="plus"></i> ADICIONAR
                 </button>
             </div>
         </div>
@@ -112,17 +113,15 @@
         <div id="items-container" class="space-y-3 pb-4"></div>
     </main>
 
-    <footer class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-6 z-20">
+    <footer class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-6 z-20">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <span>Itens: <span id="progress-count" class="text-emerald-600">0/0</span></span>
-                <span id="budget-status-text">Dentro do Limite</span>
+                <span id="budget-status-text">Calculando...</span>
             </div>
-            
-            <div class="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden flex">
+            <div class="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
                 <div id="progress-bar-bought" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
             </div>
-
             <div class="flex justify-between items-center">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-tighter">Total Geral</p>
                 <span class="text-3xl font-black text-slate-800 tracking-tighter" id="total-value">R$ 0,00</span>
@@ -138,6 +137,7 @@
             document.getElementById('budget-limit').value = budget.toFixed(2);
             updateDate();
             renderList();
+            lucide.createIcons();
         }
 
         function updateDate() {
@@ -146,81 +146,34 @@
         }
 
         function toggleDataPanel() {
-            const panel = document.getElementById('data-panel');
-            panel.classList.toggle('hidden');
+            document.getElementById('data-panel').classList.toggle('hidden');
         }
-
-        // --- FUNÇÕES DE EXPORTAÇÃO E IMPORTAÇÃO ---
-        
-        function exportData() {
-            const data = {
-                list: shoppingList,
-                budget: budget,
-                date: new Date().toISOString()
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `lista-mercado-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            toggleDataPanel();
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.list && Array.isArray(data.list)) {
-                        shoppingList = data.list;
-                        budget = data.budget || 0;
-                        document.getElementById('budget-limit').value = budget.toFixed(2);
-                        saveAndRender();
-                        alert("Lista importada com sucesso!");
-                        toggleDataPanel();
-                    }
-                } catch (err) {
-                    alert("Erro ao ler o arquivo. Verifique se é um JSON válido.");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // --- LÓGICA CORE ---
 
         function changeQty(val) {
             const input = document.getElementById('prod-qty');
-            let newVal = parseInt(input.value) + val;
-            if (newVal > 0) input.value = newVal;
+            let newVal = parseFloat(input.value) + val;
+            if (newVal >= 0) input.value = newVal.toFixed(3);
         }
 
         function saveBudget() {
             budget = parseFloat(document.getElementById('budget-limit').value) || 0;
-            localStorage.setItem('proBudget', budget);
-            renderList();
+            saveAndRender();
         }
 
         function addItem() {
             const name = document.getElementById('prod-name').value;
-            const qty = parseInt(document.getElementById('prod-qty').value);
+            const qty = parseFloat(document.getElementById('prod-qty').value);
             const price = parseFloat(document.getElementById('prod-price').value);
             const unit = document.getElementById('prod-unit').value;
 
-            if (!name || isNaN(price)) return;
+            if (!name || isNaN(price) || qty <= 0) return;
 
             shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
             saveAndRender();
             
             document.getElementById('prod-name').value = '';
             document.getElementById('prod-price').value = '';
-            document.getElementById('prod-qty').value = '1';
+            document.getElementById('prod-qty').value = '1.000';
         }
 
         function toggleItem(id) {
@@ -267,7 +220,7 @@
                         </div>
                         <div class="flex flex-col truncate">
                             <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${item.qty}${item.unit} x R$ ${item.price.toFixed(2)}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${item.qty.toFixed(3)} ${item.unit} x R$ ${item.price.toFixed(2)}</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
@@ -281,21 +234,18 @@
             });
 
             const remaining = budget - total;
-            const remainingEl = document.getElementById('budget-remaining');
+            document.getElementById('budget-remaining').innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('total-value').innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            
             const totalEl = document.getElementById('total-value');
             const statusText = document.getElementById('budget-status-text');
 
-            remainingEl.innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            totalEl.innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            
             if (budget > 0 && total > budget) {
                 totalEl.classList.add('budget-over');
-                remainingEl.classList.replace('text-emerald-500', 'text-red-500');
                 statusText.innerText = "Limite Excedido!";
                 statusText.classList.add('text-red-500');
             } else {
                 totalEl.classList.remove('budget-over');
-                remainingEl.classList.replace('text-red-500', 'text-emerald-500');
                 statusText.innerText = "Dentro do Limite";
                 statusText.classList.remove('text-red-500');
             }
@@ -305,6 +255,28 @@
             document.getElementById('progress-bar-bought').style.width = `${progress}%`;
 
             lucide.createIcons();
+        }
+
+        // Funções de exportação (mantidas)
+        function exportData() {
+            const data = { list: shoppingList, budget: budget };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `lista-mercado.json`;
+            a.click();
+        }
+
+        function importData(event) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                shoppingList = data.list;
+                budget = data.budget;
+                document.getElementById('budget-limit').value = budget.toFixed(2);
+                saveAndRender();
+            };
+            reader.readAsText(event.target.files[0]);
         }
 
         init();
