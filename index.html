@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Pro - Precisão Total</title>
+    <title>Mercado Pro - Sistema Completo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .checked { text-decoration: line-through; opacity: 0.5; filter: grayscale(1); }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .budget-over { color: #ef4444 !important; animation: shake 0.5s ease-in-out; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        #data-panel { transition: transform 0.3s ease-in-out; }
+        input::placeholder { color: #cbd5e1; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-44">
@@ -19,16 +18,14 @@
     <header class="bg-emerald-600 text-white p-6 shadow-md sticky top-0 z-20">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-tight flex items-center gap-2">
-                    <i data-lucide="shopping-bag"></i> MERCADO PRO
-                </h1>
-                <p id="current-date" class="text-emerald-100 text-xs uppercase tracking-wider mt-1 font-semibold"></p>
+                <h1 class="text-xl font-black tracking-tight italic">MERCADO PRO</h1>
+                <p id="current-date" class="text-emerald-100 text-[10px] uppercase font-bold tracking-widest"></p>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleDataPanel()" class="p-2 bg-emerald-700/50 hover:bg-white/20 rounded-lg transition-all">
+                <button onclick="toggleDataPanel()" class="p-2 bg-emerald-700/50 rounded-lg hover:bg-white/20 transition-all">
                     <i data-lucide="settings-2" class="w-5 h-5"></i>
                 </button>
-                <button onclick="clearList()" class="p-2 bg-emerald-700/50 hover:bg-red-500 rounded-lg transition-all">
+                <button onclick="clearList()" class="p-2 bg-emerald-700/50 rounded-lg hover:bg-red-500 transition-all">
                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -38,7 +35,7 @@
     <div id="data-panel" class="fixed inset-x-0 top-20 z-30 max-w-md mx-auto p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
             <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2">
-                <i data-lucide="database" class="w-5 h-5"></i> Gerenciar Dados
+                <i data-lucide="database" class="w-5 h-5"></i> Gerenciar Backup
             </h2>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="exportData()" class="flex flex-col items-center justify-center p-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all">
@@ -51,63 +48,55 @@
                     <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
                 </label>
             </div>
+            <button onclick="toggleDataPanel()" class="w-full mt-4 py-2 text-slate-400 text-xs font-bold uppercase">Fechar</button>
         </div>
     </div>
 
     <main class="max-w-md mx-auto p-4">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="bg-emerald-100 p-2 rounded-full text-emerald-600">
-                    <i data-lucide="wallet" class="w-5 h-5"></i>
-                </div>
+                <div class="bg-emerald-100 p-2 rounded-full text-emerald-600"><i data-lucide="wallet" class="w-5 h-5"></i></div>
                 <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Meu Limite</p>
-                    <div class="flex items-center gap-1">
-                        <span class="text-slate-400 font-medium text-sm">R$</span>
-                        <input type="number" id="budget-limit" value="0.00" onchange="saveBudget()"
-                            class="font-bold text-slate-700 outline-none w-24 focus:text-emerald-600 transition-colors">
-                    </div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Limite (R$)</p>
+                    <input type="text" id="budget-limit" value="0,00" onblur="formatInputMoney(this); saveBudget()"
+                        class="font-bold text-slate-700 outline-none w-24 bg-transparent focus:text-emerald-600">
                 </div>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Disponível</p>
-                <span id="budget-remaining" class="font-bold text-emerald-500 text-sm">R$ 0,00</span>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Disponível</p>
+                <span id="budget-remaining" class="font-bold text-emerald-500 text-sm italic">R$ 0,00</span>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100">
-            <div class="space-y-4">
-                <input type="text" id="prod-name" placeholder="Nome do produto..." 
-                    class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium">
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="flex items-center bg-slate-50 rounded-xl overflow-hidden p-1 border border-slate-100">
-                        <button onclick="changeQty(-0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">-</button>
-                        <input type="number" id="prod-qty" value="1.000" step="0.001" 
-                            class="w-full text-center bg-transparent font-bold text-slate-700 outline-none" 
-                            onblur="this.value = parseFloat(this.value).toFixed(3)">
-                        <button onclick="changeQty(0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm hover:bg-slate-100 text-emerald-600 font-bold">+</button>
-                    </div>
-
-                    <select id="prod-unit" class="bg-slate-50 border-none p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-600">
-                        <option value="un">Un (un)</option>
-                        <option value="kg">Kg (kg)</option>
-                        <option value="g">Gr (g)</option>
-                        <option value="L">Lt (L)</option>
-                        <option value="pct">Pc (pct)</option>
-                    </select>
+        <div class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100 space-y-4">
+            <input type="text" id="prod-name" placeholder="O que vamos comprar?" 
+                class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium text-slate-700">
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center bg-slate-50 rounded-xl overflow-hidden p-1 border border-slate-100">
+                    <button onclick="changeQty(-0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-emerald-600 font-bold">-</button>
+                    <input type="text" id="prod-qty" value="1,000" class="w-full text-center bg-transparent font-bold text-slate-700 outline-none" onblur="formatInputQty(this)">
+                    <button onclick="changeQty(0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-emerald-600 font-bold">+</button>
                 </div>
 
-                <div class="relative">
-                    <span class="absolute left-4 top-4 text-slate-400 font-bold italic">R$</span>
-                    <input type="number" id="prod-price" placeholder="Preço" step="0.01" 
-                        class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
-                </div>
-
-                <button onclick="addItem()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95">
-                    <i data-lucide="plus"></i> ADICIONAR
-                </button>
+                <select id="prod-unit" class="bg-slate-50 border-none p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-600">
+                    <option value="un">Unidade (un)</option>
+                    <option value="kg">Quilo (kg)</option>
+                    <option value="g">Grama (g)</option>
+                    <option value="L">Litro (L)</option>
+                </select>
             </div>
+
+            <div class="relative">
+                <span class="absolute left-4 top-4 text-slate-400 font-bold italic text-sm">R$</span>
+                <input type="text" id="prod-price" placeholder="Preço unitário (ex: 4,50)" 
+                    onblur="formatInputMoney(this)"
+                    class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+            </div>
+
+            <button onclick="addItem()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+                <i data-lucide="plus-circle"></i> ADICIONAR NA LISTA
+            </button>
         </div>
 
         <div id="items-container" class="space-y-3 pb-4"></div>
@@ -115,95 +104,101 @@
 
     <footer class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-6 z-20">
         <div class="max-w-md mx-auto">
-            <div class="flex justify-between items-center mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <span>Itens: <span id="progress-count" class="text-emerald-600">0/0</span></span>
-                <span id="budget-status-text">Calculando...</span>
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carrinho: <span id="progress-count" class="text-emerald-600">0/0</span></span>
+                <span id="budget-status-text" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Dentro do Limite</span>
             </div>
             <div class="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
                 <div id="progress-bar-bought" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
             </div>
             <div class="flex justify-between items-center">
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-tighter">Total Geral</p>
+                <p class="text-slate-400 text-xs font-bold uppercase italic tracking-tighter">Total Acumulado</p>
                 <span class="text-3xl font-black text-slate-800 tracking-tighter" id="total-value">R$ 0,00</span>
             </div>
         </div>
     </footer>
 
     <script>
-        let shoppingList = JSON.parse(localStorage.getItem('proShoppingList')) || [];
-        let budget = parseFloat(localStorage.getItem('proBudget')) || 0;
+        let shoppingList = JSON.parse(localStorage.getItem('proShoppingListBR')) || [];
+        let budget = parseFloat(localStorage.getItem('proBudgetBR')) || 0;
 
+        // --- CONVERSORES (VÍRGULA <-> PONTO) ---
+        function toFloat(val) {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            return parseFloat(val.toString().replace(/\./g, '').replace(',', '.')) || 0;
+        }
+
+        function toBRL(val) {
+            return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function toQtyBR(val) {
+            return val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+
+        function formatInputMoney(el) { el.value = toBRL(toFloat(el.value)); }
+        function formatInputQty(el) { el.value = toQtyBR(toFloat(el.value)); }
+
+        // --- CORE ---
         function init() {
-            document.getElementById('budget-limit').value = budget.toFixed(2);
-            updateDate();
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
+            document.getElementById('budget-limit').value = toBRL(budget);
             renderList();
-            lucide.createIcons();
         }
 
-        function updateDate() {
-            const options = { weekday: 'long', day: 'numeric', month: 'short' };
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', options);
-        }
-
-        function toggleDataPanel() {
-            document.getElementById('data-panel').classList.toggle('hidden');
-        }
+        function toggleDataPanel() { document.getElementById('data-panel').classList.toggle('hidden'); }
 
         function changeQty(val) {
             const input = document.getElementById('prod-qty');
-            let newVal = parseFloat(input.value) + val;
-            if (newVal >= 0) input.value = newVal.toFixed(3);
+            let newVal = toFloat(input.value) + val;
+            input.value = toQtyBR(newVal < 0 ? 0 : newVal);
         }
 
         function saveBudget() {
-            budget = parseFloat(document.getElementById('budget-limit').value) || 0;
+            budget = toFloat(document.getElementById('budget-limit').value);
             saveAndRender();
         }
 
         function addItem() {
             const name = document.getElementById('prod-name').value;
-            const qty = parseFloat(document.getElementById('prod-qty').value);
-            const price = parseFloat(document.getElementById('prod-price').value);
+            const qty = toFloat(document.getElementById('prod-qty').value);
+            const price = toFloat(document.getElementById('prod-price').value);
             const unit = document.getElementById('prod-unit').value;
 
-            if (!name || isNaN(price) || qty <= 0) return;
+            if (!name || price <= 0 || qty <= 0) return alert("Verifique os dados!");
 
             shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
-            saveAndRender();
-            
             document.getElementById('prod-name').value = '';
             document.getElementById('prod-price').value = '';
-            document.getElementById('prod-qty').value = '1.000';
+            document.getElementById('prod-qty').value = '1,000';
+            saveAndRender();
         }
 
         function toggleItem(id) {
-            shoppingList = shoppingList.map(item => item.id === id ? { ...item, checked: !item.checked } : item);
+            shoppingList = shoppingList.map(i => i.id === id ? {...i, checked: !i.checked} : i);
             saveAndRender();
         }
 
         function deleteItem(id) {
-            shoppingList = shoppingList.filter(item => item.id !== id);
+            shoppingList = shoppingList.filter(i => i.id !== id);
             saveAndRender();
         }
 
         function clearList() {
-            if (confirm("Limpar toda a lista?")) {
-                shoppingList = [];
-                saveAndRender();
-            }
+            if (confirm("Deseja apagar tudo?")) { shoppingList = []; saveAndRender(); }
         }
 
         function saveAndRender() {
-            localStorage.setItem('proShoppingList', JSON.stringify(shoppingList));
-            localStorage.setItem('proBudget', budget);
+            localStorage.setItem('proShoppingListBR', JSON.stringify(shoppingList));
+            localStorage.setItem('proBudgetBR', budget);
             renderList();
         }
 
         function renderList() {
             const container = document.getElementById('items-container');
             container.innerHTML = '';
-            let total = 0;
-            let checkedCount = 0;
+            let total = 0, checkedCount = 0;
 
             shoppingList.forEach(item => {
                 const subtotal = item.qty * item.price;
@@ -212,34 +207,30 @@
 
                 const card = document.createElement('div');
                 card.className = `bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between border-2 transition-all ${item.checked ? 'border-emerald-100 bg-emerald-50/30' : 'border-transparent'}`;
-                
                 card.innerHTML = `
                     <div class="flex items-center gap-3 flex-1 overflow-hidden" onclick="toggleItem(${item.id})">
-                        <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-slate-50'}">
+                        <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-slate-50'}">
                             ${item.checked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
                         </div>
                         <div class="flex flex-col truncate">
                             <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${item.qty.toFixed(3)} ${item.unit} x R$ ${item.price.toFixed(2)}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="font-black text-slate-700">R$ ${subtotal.toFixed(2)}</span>
-                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors">
-                            <i data-lucide="trash" class="w-4 h-4"></i>
-                        </button>
+                        <span class="font-black text-slate-700">R$ ${toBRL(subtotal)}</span>
+                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                 `;
                 container.appendChild(card);
             });
 
             const remaining = budget - total;
-            document.getElementById('budget-remaining').innerText = `R$ ${remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            document.getElementById('total-value').innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('budget-remaining').innerText = `R$ ${toBRL(remaining)}`;
+            document.getElementById('total-value').innerText = `R$ ${toBRL(total)}`;
             
             const totalEl = document.getElementById('total-value');
             const statusText = document.getElementById('budget-status-text');
-
             if (budget > 0 && total > budget) {
                 totalEl.classList.add('budget-over');
                 statusText.innerText = "Limite Excedido!";
@@ -251,32 +242,33 @@
             }
 
             document.getElementById('progress-count').innerText = `${checkedCount}/${shoppingList.length}`;
-            const progress = shoppingList.length > 0 ? (checkedCount / shoppingList.length) * 100 : 0;
-            document.getElementById('progress-bar-bought').style.width = `${progress}%`;
-
+            document.getElementById('progress-bar-bought').style.width = `${shoppingList.length > 0 ? (checkedCount / shoppingList.length) * 100 : 0}%`;
             lucide.createIcons();
         }
 
-        // Funções de exportação (mantidas)
+        // --- IMPORT/EXPORT ---
         function exportData() {
-            const data = { list: shoppingList, budget: budget };
-            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const data = JSON.stringify({ list: shoppingList, budget: budget });
+            const blob = new Blob([data], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `lista-mercado.json`;
+            a.download = `backup-mercado-${new Date().getTime()}.json`;
             a.click();
+            toggleDataPanel();
         }
 
-        function importData(event) {
+        function importData(e) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = JSON.parse(e.target.result);
-                shoppingList = data.list;
-                budget = data.budget;
-                document.getElementById('budget-limit').value = budget.toFixed(2);
+            reader.onload = (event) => {
+                const data = JSON.parse(event.target.result);
+                shoppingList = data.list || [];
+                budget = data.budget || 0;
+                document.getElementById('budget-limit').value = toBRL(budget);
                 saveAndRender();
+                alert("Backup restaurado!");
+                toggleDataPanel();
             };
-            reader.readAsText(event.target.files[0]);
+            reader.readAsText(e.target.files[0]);
         }
 
         init();
