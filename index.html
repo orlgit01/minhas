@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Pro - Ordem Alfabética</title>
+    <title>Mercado Pro - Filtro Inteligente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -18,7 +18,7 @@
     <header class="bg-emerald-600 text-white p-6 shadow-md sticky top-0 z-20">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-tight italic text-emerald-50">MERCADO PRO</h1>
+                <h1 class="text-xl font-black tracking-tight italic">MERCADO PRO</h1>
                 <p id="current-date" class="text-emerald-100 text-[10px] uppercase font-bold tracking-widest"></p>
             </div>
             <div class="flex gap-2">
@@ -30,7 +30,7 @@
 
     <div id="data-panel" class="fixed inset-x-0 top-20 z-30 max-w-md mx-auto p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
-            <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2"><i data-lucide="database" class="w-5 h-5"></i> Dados</h2>
+            <h2 class="text-slate-800 font-bold mb-4 flex items-center gap-2"><i data-lucide="database" class="w-5 h-5"></i> Backup</h2>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="exportData()" class="flex flex-col items-center p-4 bg-blue-50 text-blue-600 rounded-xl font-bold uppercase text-xs"><i data-lucide="download" class="mb-2"></i>Exportar</button>
                 <label class="flex flex-col items-center p-4 bg-amber-50 text-amber-600 rounded-xl font-bold uppercase text-xs cursor-pointer"><i data-lucide="upload" class="mb-2"></i>Importar<input type="file" class="hidden" onchange="importData(event)"></label>
@@ -43,42 +43,49 @@
             <div class="flex items-center gap-3">
                 <div class="bg-emerald-100 p-2 rounded-full text-emerald-600"><i data-lucide="wallet" class="w-5 h-5"></i></div>
                 <div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase italic">Limite Disponível</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Limite (R$)</p>
                     <input type="text" id="budget-limit" value="0,00" onblur="formatInputMoney(this); saveBudget()" class="font-bold text-slate-700 outline-none w-24 bg-transparent">
                 </div>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Sobrando</p>
-                <span id="budget-remaining" class="font-bold text-emerald-600 text-sm italic">R$ 0,00</span>
+                <p class="text-[10px] text-slate-400 font-bold uppercase italic">Disponível</p>
+                <span id="budget-remaining" class="font-bold text-emerald-600 text-sm">R$ 0,00</span>
             </div>
         </div>
 
         <div id="main-form" class="bg-white rounded-2xl shadow-lg p-5 mb-6 border border-slate-100 space-y-4 transition-all">
-            <div id="edit-indicator" class="hidden text-blue-600 text-[10px] font-bold uppercase mb-1 flex items-center gap-1">
-                <i data-lucide="pencil" class="w-3 h-3"></i> Editando Item
-            </div>
-            <input type="text" id="prod-name" placeholder="Nome do produto..." class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium text-slate-700">
+            <input type="text" id="prod-name" placeholder="Nome do item..." class="w-full bg-slate-50 border-none p-4 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-medium text-slate-700">
             
             <div class="grid grid-cols-2 gap-3">
-                <div class="flex items-center bg-slate-50 rounded-xl overflow-hidden p-1 border border-slate-100">
+                <div class="flex items-center bg-slate-50 rounded-xl p-1 border border-slate-100">
                     <button onclick="changeQty(-0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-emerald-600 font-bold">-</button>
                     <input type="text" id="prod-qty" value="1,000" class="w-full text-center bg-transparent font-bold text-slate-700 outline-none" onblur="formatInputQty(this)">
                     <button onclick="changeQty(0.1)" class="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm text-emerald-600 font-bold">+</button>
                 </div>
                 <select id="prod-unit" class="bg-slate-50 border-none p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-600">
-                    <option value="un">Un (un)</option><option value="kg">Kg (kg)</option><option value="g">Gr (g)</option><option value="L">Lt (L)</option>
+                    <option value="un">Un</option><option value="kg">Kg</option><option value="g">Gr</option><option value="L">Lt</option>
                 </select>
             </div>
 
             <div class="relative">
                 <span class="absolute left-4 top-4 text-slate-400 font-bold italic text-sm">R$</span>
-                <input type="text" id="prod-price" placeholder="Preço unitário" onblur="formatInputMoney(this)" class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+                <input type="text" id="prod-price" placeholder="Preço" onblur="formatInputMoney(this)" class="w-full bg-slate-50 border-none p-4 pl-12 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
             </div>
 
             <button id="btn-submit" onclick="handleFormSubmit()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
                 <i data-lucide="plus"></i> ADICIONAR
             </button>
-            <button id="btn-cancel" onclick="resetForm()" class="hidden w-full text-slate-400 font-bold py-2 text-xs uppercase tracking-widest">Cancelar Edição</button>
+            <button id="btn-cancel" onclick="resetForm()" class="hidden w-full text-slate-400 font-bold py-2 text-[10px] uppercase">Cancelar Edição</button>
+        </div>
+
+        <div class="relative mb-4">
+            <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+            <input type="text" id="filter-input" placeholder="Buscar na lista..." onkeyup="handleFilterInput()" 
+                class="w-full bg-white border border-slate-200 p-3 pl-11 pr-11 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium text-slate-600 shadow-sm">
+            
+            <button id="clear-filter-btn" onclick="clearFilter()" class="hidden absolute right-3 top-2.5 p-1 text-slate-300 hover:text-slate-500">
+                <i data-lucide="circle-x" class="w-5 h-5"></i>
+            </button>
         </div>
 
         <div id="items-container" class="space-y-3 pb-4"></div>
@@ -87,28 +94,28 @@
     <footer class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-6 z-20">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-3">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">No Carrinho: <span id="progress-count" class="text-emerald-600">0/0</span></span>
-                <span id="budget-status-text" class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Pronto</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carrinho: <span id="progress-count" class="text-emerald-600">0/0</span></span>
+                <span id="budget-status-text" class="text-[10px] font-bold uppercase text-slate-400">Status OK</span>
             </div>
-            <div class="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
+            <div class="w-full h-1.5 bg-slate-100 rounded-full mb-4 overflow-hidden">
                 <div id="progress-bar-bought" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
             </div>
             <div class="flex justify-between items-center">
-                <div class="leading-tight">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-tighter">Total da Lista</p>
-                    <p id="list-total" class="text-slate-500 font-bold text-sm">R$ 0,00</p>
+                <div class="leading-tight text-left">
+                    <p class="text-slate-400 text-[9px] font-bold uppercase">Total Lista</p>
+                    <p id="list-total" class="text-slate-500 font-bold text-xs">R$ 0,00</p>
                 </div>
                 <div class="text-right">
                     <p class="text-slate-400 text-[10px] font-bold uppercase italic tracking-tighter">Gasto no Carrinho</p>
-                    <span class="text-3xl font-black text-slate-800 tracking-tighter" id="total-value">R$ 0,00</span>
+                    <span class="text-2xl font-black text-slate-800 tracking-tighter" id="total-value">R$ 0,00</span>
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
-        let shoppingList = JSON.parse(localStorage.getItem('proList_v4')) || [];
-        let budget = parseFloat(localStorage.getItem('proBudget_v4')) || 0;
+        let shoppingList = JSON.parse(localStorage.getItem('proList_v6')) || [];
+        let budget = parseFloat(localStorage.getItem('proBudget_v6')) || 0;
         let editingId = null;
 
         const toFloat = v => typeof v === 'number' ? v : parseFloat(v?.toString().replace(/\./g, '').replace(',', '.')) || 0;
@@ -121,6 +128,22 @@
         function init() {
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
             document.getElementById('budget-limit').value = toBRL(budget);
+            renderList();
+        }
+
+        // Lógica do Filtro
+        function handleFilterInput() {
+            const input = document.getElementById('filter-input');
+            const btn = document.getElementById('clear-filter-btn');
+            btn.classList.toggle('hidden', input.value.length === 0);
+            renderList();
+        }
+
+        function clearFilter() {
+            const input = document.getElementById('filter-input');
+            input.value = '';
+            document.getElementById('clear-filter-btn').classList.add('hidden');
+            input.focus();
             renderList();
         }
 
@@ -142,20 +165,16 @@
             const qty = toFloat(document.getElementById('prod-qty').value);
             const price = toFloat(document.getElementById('prod-price').value);
             const unit = document.getElementById('prod-unit').value;
-
-            if (!name || price <= 0 || qty <= 0) return alert("Preencha corretamente");
-
+            if (!name || price <= 0) return alert("Dados incompletos");
             if (editingId) {
                 shoppingList = shoppingList.map(item => item.id === editingId ? {...item, name, qty, price, unit} : item);
             } else {
                 shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
             }
-            
             resetForm();
             sortAndSave();
         }
 
-        // --- FUNÇÃO DE ORDENAÇÃO ---
         function sortAndSave() {
             shoppingList.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }));
             saveAndRender();
@@ -170,9 +189,8 @@
             document.getElementById('prod-price').value = toBRL(item.price);
             document.getElementById('prod-unit').value = item.unit;
             document.getElementById('main-form').classList.add('edit-mode');
-            document.getElementById('edit-indicator').classList.remove('hidden');
             document.getElementById('btn-cancel').classList.remove('hidden');
-            document.getElementById('btn-submit').innerHTML = '<i data-lucide="save"></i> SALVAR ALTERAÇÃO';
+            document.getElementById('btn-submit').innerHTML = '<i data-lucide="save"></i> SALVAR';
             document.getElementById('btn-submit').classList.replace('bg-emerald-600', 'bg-blue-600');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             lucide.createIcons();
@@ -184,7 +202,6 @@
             document.getElementById('prod-qty').value = '1,000';
             document.getElementById('prod-price').value = '';
             document.getElementById('main-form').classList.remove('edit-mode');
-            document.getElementById('edit-indicator').classList.add('hidden');
             document.getElementById('btn-cancel').classList.add('hidden');
             document.getElementById('btn-submit').innerHTML = '<i data-lucide="plus"></i> ADICIONAR';
             document.getElementById('btn-submit').classList.replace('bg-blue-600', 'bg-emerald-600');
@@ -197,10 +214,7 @@
         }
 
         function deleteItem(id) {
-            if (confirm("Excluir este item?")) {
-                shoppingList = shoppingList.filter(i => i.id !== id);
-                saveAndRender();
-            }
+            if (confirm("Remover?")) { shoppingList = shoppingList.filter(i => i.id !== id); saveAndRender(); }
         }
 
         function clearList() {
@@ -208,13 +222,14 @@
         }
 
         function saveAndRender() {
-            localStorage.setItem('proList_v4', JSON.stringify(shoppingList));
-            localStorage.setItem('proBudget_v4', budget);
+            localStorage.setItem('proList_v6', JSON.stringify(shoppingList));
+            localStorage.setItem('proBudget_v6', budget);
             renderList();
         }
 
         function renderList() {
             const container = document.getElementById('items-container');
+            const filterTerm = document.getElementById('filter-input').value.toLowerCase();
             container.innerHTML = '';
             let totalLista = 0, totalCarrinho = 0, checkedCount = 0;
 
@@ -223,42 +238,39 @@
                 totalLista += subtotal;
                 if(item.checked) { totalCarrinho += subtotal; checkedCount++; }
 
-                const card = document.createElement('div');
-                card.className = `bg-white p-4 rounded-2xl shadow-sm border-2 transition-all ${item.checked ? 'border-emerald-500 bg-emerald-50/20' : 'border-transparent'}`;
-                card.innerHTML = `
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-3 flex-1 overflow-hidden" onclick="toggleItem(${item.id})">
-                            <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-slate-50'}">
-                                ${item.checked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                if (item.name.toLowerCase().includes(filterTerm)) {
+                    const card = document.createElement('div');
+                    card.className = `bg-white p-4 rounded-2xl shadow-sm border-2 transition-all ${item.checked ? 'border-emerald-500 bg-emerald-50/20' : 'border-transparent'}`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3 flex-1 overflow-hidden" onclick="toggleItem(${item.id})">
+                                <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200'}">
+                                    ${item.checked ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                                </div>
+                                <div class="flex flex-col truncate">
+                                    <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
+                                </div>
                             </div>
-                            <div class="flex flex-col truncate">
-                                <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
-                            </div>
+                            <span class="font-black text-slate-700 ml-2">R$ ${toBRL(subtotal)}</span>
                         </div>
-                        <span class="font-black text-slate-700 ml-2">R$ ${toBRL(subtotal)}</span>
-                    </div>
-                    <div class="flex justify-end gap-4 border-t border-slate-50 pt-2">
-                        <button onclick="editItem(${item.id})" class="text-blue-400 hover:text-blue-600 flex items-center gap-1 text-[10px] font-bold uppercase"><i data-lucide="pencil" class="w-3 h-3"></i> Editar</button>
-                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 flex items-center gap-1 text-[10px] font-bold uppercase"><i data-lucide="trash-2" class="w-3 h-3"></i> Excluir</button>
-                    </div>
-                `;
-                container.appendChild(card);
+                        <div class="flex justify-end gap-4 border-t border-slate-50 pt-2">
+                            <button onclick="editItem(${item.id})" class="text-blue-400 text-[10px] font-bold uppercase">Editar</button>
+                            <button onclick="deleteItem(${item.id})" class="text-slate-300 text-[10px] font-bold uppercase">Excluir</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
             });
 
             document.getElementById('budget-remaining').innerText = `R$ ${toBRL(budget - totalCarrinho)}`;
             document.getElementById('total-value').innerText = `R$ ${toBRL(totalCarrinho)}`;
             document.getElementById('list-total').innerText = `R$ ${toBRL(totalLista)}`;
             
-            const statusText = document.getElementById('budget-status-text');
             if (budget > 0 && totalCarrinho > budget) {
                 document.getElementById('total-value').classList.add('budget-over');
-                statusText.innerText = "LIMITE EXCEDIDO!";
-                statusText.classList.add('text-red-600');
             } else {
                 document.getElementById('total-value').classList.remove('budget-over');
-                statusText.innerText = checkedCount > 0 ? "No Limite" : "Pronto";
-                statusText.classList.remove('text-red-600');
             }
 
             document.getElementById('progress-count').innerText = `${checkedCount}/${shoppingList.length}`;
@@ -268,7 +280,7 @@
 
         function exportData() {
             const blob = new Blob([JSON.stringify({list: shoppingList, budget})], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup_mercado.json'; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
         }
 
         function importData(e) {
