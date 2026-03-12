@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Pro - Filtro Inteligente</title>
+    <title>Mercado Pro - Com Data de Compra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -82,8 +82,7 @@
             <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
             <input type="text" id="filter-input" placeholder="Buscar na lista..." onkeyup="handleFilterInput()" 
                 class="w-full bg-white border border-slate-200 p-3 pl-11 pr-11 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium text-slate-600 shadow-sm">
-            
-            <button id="clear-filter-btn" onclick="clearFilter()" class="hidden absolute right-3 top-2.5 p-1 text-slate-300 hover:text-slate-500">
+            <button id="clear-filter-btn" onclick="clearFilter()" class="hidden absolute right-3 top-2.5 p-1 text-slate-300">
                 <i data-lucide="circle-x" class="w-5 h-5"></i>
             </button>
         </div>
@@ -114,16 +113,13 @@
     </footer>
 
     <script>
-        let shoppingList = JSON.parse(localStorage.getItem('proList_v6')) || [];
-        let budget = parseFloat(localStorage.getItem('proBudget_v6')) || 0;
+        let shoppingList = JSON.parse(localStorage.getItem('proList_v7')) || [];
+        let budget = parseFloat(localStorage.getItem('proBudget_v7')) || 0;
         let editingId = null;
 
         const toFloat = v => typeof v === 'number' ? v : parseFloat(v?.toString().replace(/\./g, '').replace(',', '.')) || 0;
         const toBRL = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const toQtyBR = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-
-        function formatInputMoney(el) { el.value = toBRL(toFloat(el.value)); }
-        function formatInputQty(el) { el.value = toQtyBR(toFloat(el.value)); }
 
         function init() {
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
@@ -131,19 +127,15 @@
             renderList();
         }
 
-        // Lógica do Filtro
         function handleFilterInput() {
             const input = document.getElementById('filter-input');
-            const btn = document.getElementById('clear-filter-btn');
-            btn.classList.toggle('hidden', input.value.length === 0);
+            document.getElementById('clear-filter-btn').classList.toggle('hidden', input.value.length === 0);
             renderList();
         }
 
         function clearFilter() {
-            const input = document.getElementById('filter-input');
-            input.value = '';
+            document.getElementById('filter-input').value = '';
             document.getElementById('clear-filter-btn').classList.add('hidden');
-            input.focus();
             renderList();
         }
 
@@ -169,7 +161,7 @@
             if (editingId) {
                 shoppingList = shoppingList.map(item => item.id === editingId ? {...item, name, qty, price, unit} : item);
             } else {
-                shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false });
+                shoppingList.push({ id: Date.now(), name, qty, price, unit, checked: false, boughtAt: null });
             }
             resetForm();
             sortAndSave();
@@ -209,7 +201,18 @@
         }
 
         function toggleItem(id) {
-            shoppingList = shoppingList.map(i => i.id === id ? {...i, checked: !i.checked} : i);
+            shoppingList = shoppingList.map(item => {
+                if (item.id === id) {
+                    const isNowChecked = !item.checked;
+                    return { 
+                        ...item, 
+                        checked: isNowChecked, 
+                        // Regista a data atual se estiver a marcar, remove se estiver a desmarcar
+                        boughtAt: isNowChecked ? new Date().toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) : null 
+                    };
+                }
+                return item;
+            });
             saveAndRender();
         }
 
@@ -222,8 +225,8 @@
         }
 
         function saveAndRender() {
-            localStorage.setItem('proList_v6', JSON.stringify(shoppingList));
-            localStorage.setItem('proBudget_v6', budget);
+            localStorage.setItem('proList_v7', JSON.stringify(shoppingList));
+            localStorage.setItem('proBudget_v7', budget);
             renderList();
         }
 
@@ -249,7 +252,10 @@
                                 </div>
                                 <div class="flex flex-col truncate">
                                     <span class="font-bold text-slate-700 ${item.checked ? 'checked' : ''}">${item.name}</span>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${toQtyBR(item.qty)} ${item.unit} x R$ ${toBRL(item.price)}</span>
+                                        ${item.boughtAt ? `<span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 rounded font-bold uppercase italic">🛒 ${item.boughtAt}</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
                             <span class="font-black text-slate-700 ml-2">R$ ${toBRL(subtotal)}</span>
